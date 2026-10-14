@@ -1891,7 +1891,12 @@ public:
     explicit JuceAUViewController (AUViewController<AUAudioUnitFactory>* p)
         : myself (p)
     {
-        initialiseJuce_GUI();
+        // JUCE 9.0.3 (be29c81492) may first initialise here on a host worker.
+        // Identify the real main thread before callSync creates the editor.
+        if ([NSThread isMainThread])
+            initialiseJuce_GUI();
+        else
+            dispatch_sync (dispatch_get_main_queue(), ^{ initialiseJuce_GUI(); });
     }
 
     ~JuceAUViewController()
